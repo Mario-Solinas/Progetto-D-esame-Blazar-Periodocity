@@ -1,7 +1,7 @@
 
         ##########################################################################################################################
                                                                                                                                 
-        #  Blazar-Periodocity1: analisi di Fourier delle curve di luce settimanali delle quattro sorgenti Blazar prese in esame  # 
+        #  Blazar-Periodocity_weekly: analisi di Fourier delle curve di luce settimanali delle quattro sorgenti Blazar prese in esame  # 
                                                                                                                                
         ##########################################################################################################################
         
@@ -46,33 +46,33 @@ def main_Blazar():
     args = parse_arguments()
 
     #---------------------------------------------------------------#
-    #              Dictionary con sorgenti e files      #
+    #                 Dictionary con sorgenti e files               #
     #---------------------------------------------------------------#
 
     sorgenti_dict = {
 
-	 "sorgente_1": {
+        "sorgente_1": {
 
-            "nome_file":  "4FGL_J0137.0+4751_weekly_12_27_2024.csv",
-	},
- 
-         "sorgente_2": {
-
-            "nome_file":  "4FGL_J0442.6-0017_weekly_12_27_2024.csv",
-	},
- 
-
-         "sorgente_3": {
-
-            "nome_file":  "4FGL_J0449.4-4350_weekly_12_27_2024.csv",
+            "nome_file": "dati_csv/4FGL_J0137.0+4751_weekly_12_27_2024.csv",
         },
 
-	 "sorgente_4": {
+        "sorgente_2": {
 
-            "nome_file":  "4FGL_J1256.1-0547_weekly_12_27_2024.csv",
+            "nome_file": "dati_csv/4FGL_J0442.6-0017_weekly_12_27_2024.csv",
         },
+
+        "sorgente_3": {
+
+            "nome_file": "dati_csv/4FGL_J0449.4-4350_weekly_12_27_2024.csv",  
+        },
+
+        "sorgente_4": {
+
+            "nome_file": "dati_csv/4FGL_J1256.1-0547_weekly_12_27_2024.csv",
+        },
+
     }
-                
+
     #----------------------------------------------------------------#
     # Lettura files dei dati e aggiunta del dataframe df a dictionary#
     #----------------------------------------------------------------#
@@ -85,21 +85,125 @@ def main_Blazar():
 
         sorgenti_dict[sorgente]["df"] = df
 
- 
 
-    print(sorgenti_dict["sorgente_1"]["nomefile"])
-    print(sorgenti_dict["sorgente_1"]["df"])
+    #-------------------------------------------------------------#
+    #                 Grafici delle Curve di Luce                 #   
+    #-------------------------------------------------------------#
 
-    if args.gplot:
+    if args.gplot == True:
                 
-     print("Produco i grafici")
+       
 
-    if args.FFTplot:
-           print("Produco le FFT")
+       fig, axes = plt.subplots(4, 1, figsize=(8, 9), sharex=True)
+	
+       colors = ['#FF8C00', '#1E90FF', '#32CD32', '#8A2BE2']
+        
+       for indx, sorgente in enumerate(sorgenti_dict):
 
-    if args.PSplot:
-           print("Produco gli spettri di potenza")
+           ax = axes[indx]
+
+           colori = colors[indx]
+            
+           flux_values = []
+
+           upper_count = 0
+
+           Energy_flux = sorgenti_dict[sorgente]['df']['Energy Flux [0.1-100 GeV](MeV cm-2 s-1)']
+
+           time = sorgenti_dict[sorgente]['df']['Julian Date']
+
+
+           for valore in Energy_flux:
+
+                s = str(valore).strip()
+
+                if s == '-':
+
+                  flux_values.append(np.nan)
+
+                elif s.startswith('<'):
+			
+                    upper_count += 1
+
+                    try:
+
+                        flux_values.append(float(s[1:].strip()))
+
+                    except:
+
+                        flux_values.append(np.nan)
+                else:
+
+                    try:
+
+                       flux_values.append(float(s))
+
+                    except:
+
+                        flux_values.append(np.nan)
+
+           flux = np.array(flux_values, dtype = float)
+
+           mask = np.isfinite(time) & np.isfinite(flux)
+       
+           time = time[mask]
+        
+           flux = flux[mask] 
+
+
+           ax.plot(time, flux, 'o-', color=colori,markersize=3, linewidth=1, label=sorgente)
+            
+           ax.legend(loc='upper right')
+
+           ax.set_ylabel("Energy Flux (log-scale)")
+
+           ax.set_yscale('log')
+            
+           
+
+           total_points = len(flux)
+
+           percentuale = (upper_count / total_points * 100) 
+
+           print(sorgente)
+
+           print(total_points,":punti totali")
+
+           print(upper_count, ":upper limits")
+
+           print( "percentuale:", percentuale, "%")
+
+
+           ax.set_title(sorgente)
+        
+       axes[-1].set_xlabel('Julian Date')
+
+       plt.suptitle('Blazar Light Curves - weekly', fontsize=12)
+
+       plt.tight_layout()
+
+       plt.show()
+
+
+
+    if args.FFTplot == True:
+
+       print("Produco le FFT")
+
+    if args.PSplot == True:
+
+       print("Produco gli spettri di potenza")
 
 
 if __name__ == "__main__":
     main_Blazar()
+
+
+
+
+
+
+
+
+
+
