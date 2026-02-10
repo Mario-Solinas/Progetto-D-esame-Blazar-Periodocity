@@ -18,21 +18,28 @@
 import sys
 import numpy as np
 import pandas as pd
-from scipy import constants, fft, optimize 
+from scipy import constants, fft, optimize
+from scipy.optimize import curve_fit 
 import matplotlib.pyplot as plt
 import argparse
 
 
 #####################################################################
-#      Funzione per gestire le  opzioni tramite modulo argparse     #
+#            Funzioni Integrative  e di Supporto                    #
 #####################################################################
+
+
+
+#-------------------------------------------------------------------#
+#      Funzione per gestire le  opzioni tramite modulo argparse     #
+#-------------------------------------------------------------------#
 
 
 
 def parse_arguments():
 
-    parser = argparse.ArgumentParser(description=' Blazar-Periodocity1 data analysis and plot.',
-                                     usage      ='Blazar-Periodocity1.py  --option')
+    parser = argparse.ArgumentParser(description=' Blazar-Periodocity_week data analysis and plot.',
+                                     usage      ='Blazar-Periodocity_week.py  --option')
 
     parser.add_argument('--gplot',      action='store_true',   help='grafici relativi alle curve di luce delle quattro sorgenti')
     parser.add_argument('--FFTplot',    action='store_true',   help='grafici delle FFT delle curve di luce delle quattro sorgenti')
@@ -44,55 +51,11 @@ def parse_arguments():
     return  parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
 
-def main_Blazar():
+#------------------------------------------------------------#
+#     Funzione che separa i flux_data dagli upper limits     #
+#------------------------------------------------------------#
 
-    args = parse_arguments()
-
-    #---------------------------------------------------------------#
-    #                 Dictionary con sorgenti e files               #
-    #---------------------------------------------------------------#
-
-    sorgenti_dict = {
-
-        "sorgente_1": {
-
-            "nome_file": "dati_csv/4FGL_J0137.0+4751_weekly_12_27_2024.csv",
-        },
-
-        "sorgente_2": {
-
-            "nome_file": "dati_csv/4FGL_J0442.6-0017_weekly_12_27_2024.csv",
-        },
-
-        "sorgente_3": {
-
-            "nome_file": "dati_csv/4FGL_J0449.4-4350_weekly_12_27_2024.csv",  
-        },
-
-        "sorgente_4": {
-
-            "nome_file": "dati_csv/4FGL_J1256.1-0547_weekly_12_27_2024.csv",
-        },
-
-    }
-
-    #----------------------------------------------------------------#
-    # Lettura files dei dati e aggiunta del dataframe df a dictionary#
-    #----------------------------------------------------------------#
-
-    for sorgente in sorgenti_dict:
-
-        file_blazar = sorgenti_dict[sorgente]["nome_file"]
-
-        df = pd.read_csv(file_blazar)
-
-        sorgenti_dict[sorgente]["df"] = df
-
-    #----------------------------------------------------------------#
-    #     Funzione che separa i flux_data dagli upper limits         #
-    #----------------------------------------------------------------#
-
-    def processa_sorgente(sorgente, sorgenti_dict):
+def processa_sorgente(sorgente, sorgenti_dict):
 
             #creo le liste per differenziare i dati "normali" dagli upper limits
 
@@ -117,7 +80,7 @@ def main_Blazar():
                 s = str(valore).strip()
 
                 if s == '-':
-
+                                  
                    normal_flux.append(np.nan)
 
                    normal_time.append(up)
@@ -165,27 +128,26 @@ def main_Blazar():
        
             tempi_normali = tempi_normali[mask1]
         
-            flussi_normali = flussi_normali[mask1]  
+            flussi_normali = flussi_normali[mask1]
 
             mask2 = np.isfinite(tempi_limiti) & np.isfinite( flussi_limiti)
        
             tempi_limiti =  tempi_limiti[mask2]
         
-            flussi_limiti =  flussi_limiti [mask2]
-
-            #restituisce il dizionario con gli array corrispondenti alle chiavi stringhe denominate con lo stesso nome
+            flussi_limiti =  flussi_limiti [mask2] 
             
+            #restituisce il dizionario con gli array corrispondenti alle chiavi stringhe
+
             return {'tempi_normali': tempi_normali, 'flussi_normali': flussi_normali,
  
                     'tempi_limiti': tempi_limiti, 'flussi_limiti': flussi_limiti }
             
-
-    #----------------------------------------------------------------#
-    #     Funzione per il calcolo dei p.t totali, upper limits e %   #
-    #----------------------------------------------------------------#
+#----------------------------------------------------------------#
+#     Funzione per il calcolo dei p.t totali, upper limits e %   #
+#----------------------------------------------------------------#
 
   
-    def calcola_upper(flussi_normali, flussi_limiti, sorgente=""):
+def calcola_upper(flussi_normali, flussi_limiti, sorgente=""):
 
         total_points = len(flussi_normali) + len(flussi_limiti)
             
@@ -205,6 +167,54 @@ def main_Blazar():
 
 
 
+#####################################################################
+#      Funzione principale: main_Blazar_week                        #
+#####################################################################
+
+
+def main_Blazar_week():
+
+    args = parse_arguments()
+
+    #---------------------------------------------------------------#
+    #                 Dictionary con sorgenti e files               #
+    #---------------------------------------------------------------#
+
+    sorgenti_dict = {
+
+        "sorgente_1": {
+
+            "nome_file": "dati_csv/4FGL_J0137.0+4751_weekly_12_27_2024.csv",
+        },
+
+        "sorgente_2": {
+
+            "nome_file": "dati_csv/4FGL_J0442.6-0017_weekly_12_27_2024.csv",
+        },
+
+        "sorgente_3": {
+
+            "nome_file": "dati_csv/4FGL_J0449.4-4350_weekly_12_27_2024.csv",  
+        },
+
+        "sorgente_4": {
+
+            "nome_file": "dati_csv/4FGL_J1256.1-0547_weekly_12_27_2024.csv",
+        },
+
+    }
+
+    #----------------------------------------------------------------#
+    # Lettura files dei dati e aggiunta del dataframe df a dictionary#
+    #----------------------------------------------------------------#    
+
+    for sorgente in sorgenti_dict:
+
+        file_blazar = sorgenti_dict[sorgente]["nome_file"]
+
+        df = pd.read_csv(file_blazar)
+
+        sorgenti_dict[sorgente]["df"] = df
 
 
     #-------------------------------------------------------------#
@@ -264,19 +274,18 @@ def main_Blazar():
        plt.tight_layout()
 
        plt.show()
+
+    #-----------------------------------------------------------#
+    #                 Calcolo delle FFT e Grafici               #
+    #-----------------------------------------------------------#
+
+    if args.FFTplot == True  or  args.PSplot == True:
+
+       print('produco le FFT') 
+
        
-    if args.FFTplot == True:
-
-
-
-
-    if args.PSplot == True:
-
-       print("Produco gli spettri di potenza")
-
-
 if __name__ == "__main__":
-    main_Blazar()
+    main_Blazar_week()
 
 
 
