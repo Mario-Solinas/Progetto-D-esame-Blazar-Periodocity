@@ -85,22 +85,13 @@ def main_Blazar():
 
         sorgenti_dict[sorgente]["df"] = df
 
+    #----------------------------------------------------------------#
+    #     Funzione che separa i flux_data dagli upper limits         #
+    #----------------------------------------------------------------#
 
-    #-------------------------------------------------------------#
-    #                 Grafici delle Curve di Luce                 #   
-    #-------------------------------------------------------------#
+    def processa_sorgente(sorgente, sorgenti_dict):
 
-    if args.gplot == True:
-                
-       fig, axes = plt.subplots(4, 1, figsize=(8, 9), sharex=True)
-
-       colors = ['#FF8C00', '#1E90FF', '#32CD32', '#8A2BE2']      
- 
-       for indx, sorgente in enumerate(sorgenti_dict):
-
-            ax = axes[indx]
-
-            colori = colors[indx]
+            #creo le liste per differenziare i dati "normali" dagli upper limits
 
             normal_flux = []
 
@@ -110,9 +101,13 @@ def main_Blazar():
          
             upper_time = []
 
+            #memorizzo i dataframe dei flussi e dei tempi 
+
             Energy_flux = sorgenti_dict[sorgente]['df']['Energy Flux [0.1-100 GeV](MeV cm-2 s-1)']
 
             time = sorgenti_dict[sorgente]['df']['Julian Date']
+
+            #converto i valori di flusso in stringhe al fine di individuare i dati "-" , NaN e "<"
 
             for up, valore in  zip(time, Energy_flux):
 
@@ -127,6 +122,7 @@ def main_Blazar():
                 elif s.startswith('<'):
 
                      try:
+                        # elimino "<" e converto l'upper limit in float
 
                         upper_flux.append(float(s[1:].strip()))
 
@@ -148,7 +144,7 @@ def main_Blazar():
 
                         normal_flux.append(np.nan)
 
-                    
+            #converto in array le liste  con i dati selezionati (NaN e float)         
 
             flussi_normali = np.array(normal_flux, dtype = float)
 
@@ -158,13 +154,15 @@ def main_Blazar():
 
             tempi_limiti = np.array(upper_time, dtype = float)
 
+             
 
+            #eseguo la maschera sui 4 array, selezionando solo dati reali (eliminazione dei NaN)
 
             mask1 = np.isfinite(tempi_normali ) & np.isfinite(flussi_normali)
        
             tempi_normali = tempi_normali[mask1]
         
-            flussi_normali = flussi_normali [mask1] 
+            flussi_normali = flussi_normali[mask1]  
 
             mask2 = np.isfinite(tempi_limiti) & np.isfinite( flussi_limiti)
        
@@ -172,6 +170,67 @@ def main_Blazar():
         
             flussi_limiti =  flussi_limiti [mask2] 
             
+            return {'tempi_normali': tempi_normali, 'flussi_normali': flussi_normali,
+ 
+                    'tempi_limiti': tempi_limiti, 'flussi_limiti': flussi_limiti }
+            
+
+    #----------------------------------------------------------------#
+    #     Funzione per il calcolo dei p.t totali, upper limits e %   #
+    #----------------------------------------------------------------#
+
+  
+    def calcola_upper(flussi_normali, flussi_limiti, sorgente=""):
+
+        total_points = len(flussi_normali) + len(flussi_limiti)
+            
+        if total_points >0:
+
+           percentuale = (len(flussi_limiti) / total_points * 100) 
+
+        print(sorgente)
+
+        print(total_points,"punti totali")
+
+        print(len(flussi_limiti) , "upper limits")
+
+        print("percentuale", percentuale, "%")
+
+        return total_points, len(flussi_limiti), percentuale
+
+
+
+
+
+    #-------------------------------------------------------------#
+    #                 Grafici delle Curve di Luce                 #   
+    #-------------------------------------------------------------#
+
+    if args.gplot == True:
+                
+       fig, axes = plt.subplots(4, 1, figsize=(8, 9), sharex=True)
+
+       colors = ['#FF8C00', '#1E90FF', '#32CD32', '#8A2BE2']      
+ 
+       for indx, sorgente in enumerate(sorgenti_dict):
+
+            ax = axes[indx]
+
+            colori = colors[indx]
+
+            #chiamo la funzione processa_sorgente
+
+            dati = processa_sorgente(sorgente, sorgenti_dict)
+
+            tempi_normali = dati['tempi_normali']
+
+            flussi_normali = dati['flussi_normali']
+
+            tempi_limiti = dati['tempi_limiti']
+
+            flussi_limiti = dati['flussi_limiti']
+            
+            #eseguo i plot dei dati "normali" e degli upper limits        
 
             if len(tempi_normali) > 0:         
 
@@ -181,31 +240,17 @@ def main_Blazar():
 
                ax.plot(tempi_limiti, flussi_limiti  , color='red', linestyle='', marker='v', markersize=5,label='Upper limits')
 
-             
-             
-            ax.legend(loc='upper right')
-
-               
+            ax.legend(loc='upper right')    
                
             ax.set_ylabel("Energy Flux (log-scale)")
 
-            ax.set_yscale('log')
+            ax.set_yscale('log') 
 
-            
- 
-            total_points = len(flussi_normali) + len(flussi_limiti)
 
-            percentuale = (len(flussi_limiti) / total_points * 100) 
+            #chiamo la funzione calcola_upper
 
-            print(sorgente)
-
-            print(total_points,"punti totali")
-
-            print(len(flussi_limiti) , "upper limits")
-
-            print( "percentuale", percentuale, "%")
-
-            ax.set_title(sorgente)
+            totali, upper, perc = calcola_upper(flussi_normali, flussi_limiti, sorgente)
+           
 
        axes[-1].set_xlabel('Julian Date')
 
@@ -217,7 +262,8 @@ def main_Blazar():
        
     if args.FFTplot == True:
 
-       print("Produco le FFT")
+
+
 
     if args.PSplot == True:
 
