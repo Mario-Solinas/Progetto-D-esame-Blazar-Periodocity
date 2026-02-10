@@ -92,90 +92,121 @@ def main_Blazar():
 
     if args.gplot == True:
                 
-       
-
        fig, axes = plt.subplots(4, 1, figsize=(8, 9), sharex=True)
-	
-       colors = ['#FF8C00', '#1E90FF', '#32CD32', '#8A2BE2']
-        
+
+       colors = ['#FF8C00', '#1E90FF', '#32CD32', '#8A2BE2']      
+ 
        for indx, sorgente in enumerate(sorgenti_dict):
 
-           ax = axes[indx]
+            ax = axes[indx]
 
-           colori = colors[indx]
-            
-           flux_values = []
+            colori = colors[indx]
 
-           upper_count = 0
+            normal_flux = []
 
-           Energy_flux = sorgenti_dict[sorgente]['df']['Energy Flux [0.1-100 GeV](MeV cm-2 s-1)']
+            normal_time = []
 
-           time = sorgenti_dict[sorgente]['df']['Julian Date']
+            upper_flux = []   
+         
+            upper_time = []
 
+            Energy_flux = sorgenti_dict[sorgente]['df']['Energy Flux [0.1-100 GeV](MeV cm-2 s-1)']
 
-           for valore in Energy_flux:
+            time = sorgenti_dict[sorgente]['df']['Julian Date']
+
+            for up, valore in  zip(time, Energy_flux):
 
                 s = str(valore).strip()
 
                 if s == '-':
 
-                  flux_values.append(np.nan)
+                   normal_flux.append(np.nan)
+
+                   normal_time.append(up)
 
                 elif s.startswith('<'):
-			
-                    upper_count += 1
 
-                    try:
+                     try:
 
-                        flux_values.append(float(s[1:].strip()))
+                        upper_flux.append(float(s[1:].strip()))
 
-                    except:
+                        upper_time.append(up) 
 
-                        flux_values.append(np.nan)
+                     except:
+
+                        upper_flux.append(np.nan)
+ 
                 else:
 
-                    try:
+                     try:
 
-                       flux_values.append(float(s))
+                        normal_flux.append(float(s))
 
-                    except:
+                        normal_time.append(up) 
 
-                        flux_values.append(np.nan)
+                     except:
 
-           flux = np.array(flux_values, dtype = float)
+                        normal_flux.append(np.nan)
 
-           mask = np.isfinite(time) & np.isfinite(flux)
+                    
+
+            flussi_normali = np.array(normal_flux, dtype = float)
+
+            flussi_limiti = np.array(upper_flux, dtype = float)
+
+            tempi_normali = np.array(normal_time, dtype = float)
+
+            tempi_limiti = np.array(upper_time, dtype = float)
+
+
+
+            mask1 = np.isfinite(tempi_normali ) & np.isfinite(flussi_normali)
        
-           time = time[mask]
+            tempi_normali = tempi_normali[mask1]
         
-           flux = flux[mask] 
+            flussi_normali = flussi_normali [mask1] 
 
-
-           ax.plot(time, flux, 'o-', color=colori,markersize=3, linewidth=1, label=sorgente)
-            
-           ax.legend(loc='upper right')
-
-           ax.set_ylabel("Energy Flux (log-scale)")
-
-           ax.set_yscale('log')
-            
-           
-
-           total_points = len(flux)
-
-           percentuale = (upper_count / total_points * 100) 
-
-           print(sorgente)
-
-           print(total_points,":punti totali")
-
-           print(upper_count, ":upper limits")
-
-           print( "percentuale:", percentuale, "%")
-
-
-           ax.set_title(sorgente)
+            mask2 = np.isfinite(tempi_limiti) & np.isfinite( flussi_limiti)
+       
+            tempi_limiti =  tempi_limiti[mask2]
         
+            flussi_limiti =  flussi_limiti [mask2] 
+            
+
+            if len(tempi_normali) > 0:         
+
+               ax.plot(tempi_normali, flussi_normali , linestyle='', marker = 'o', markersize=6,  color=colori, label=sorgente)
+
+            if len(tempi_limiti) > 0:
+
+               ax.plot(tempi_limiti, flussi_limiti  , color='red', linestyle='', marker='v', markersize=5,label='Upper limits')
+
+             
+             
+            ax.legend(loc='upper right')
+
+               
+               
+            ax.set_ylabel("Energy Flux (log-scale)")
+
+            ax.set_yscale('log')
+
+            
+ 
+            total_points = len(flussi_normali) + len(flussi_limiti)
+
+            percentuale = (len(flussi_limiti) / total_points * 100) 
+
+            print(sorgente)
+
+            print(total_points,"punti totali")
+
+            print(len(flussi_limiti) , "upper limits")
+
+            print( "percentuale", percentuale, "%")
+
+            ax.set_title(sorgente)
+
        axes[-1].set_xlabel('Julian Date')
 
        plt.suptitle('Blazar Light Curves - weekly', fontsize=12)
@@ -183,9 +214,7 @@ def main_Blazar():
        plt.tight_layout()
 
        plt.show()
-
-
-
+       
     if args.FFTplot == True:
 
        print("Produco le FFT")
