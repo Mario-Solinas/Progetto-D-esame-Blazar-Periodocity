@@ -171,7 +171,9 @@ def main_Blazar():
        
             tempi_limiti =  tempi_limiti[mask2]
         
-            flussi_limiti =  flussi_limiti [mask2] 
+            flussi_limiti =  flussi_limiti [mask2]
+
+            #restituisce il dizionario con gli array corrispondenti alle chiavi stringhe denominate con lo stesso nome
             
             return {'tempi_normali': tempi_normali, 'flussi_normali': flussi_normali,
  
