@@ -136,7 +136,7 @@ def processa_sorgente(sorgente, sorgenti_dict):
         
             flussi_limiti =  flussi_limiti [mask2] 
             
-            #restituisce il dizionario con gli array corrispondenti alle chiavi stringhe
+            #restituisce il dizionario con gli array corrispondenti alle chiavi stringhe aventi stesso nome
 
             return {'tempi_normali': tempi_normali, 'flussi_normali': flussi_normali,
  
