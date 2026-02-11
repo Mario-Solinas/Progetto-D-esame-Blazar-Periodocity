@@ -230,8 +230,22 @@ def calcola_fft_ps (time, E_flux):
 
     PS = np.abs(ck)**2
     
-    return  fk , PS
+    return  fk , PS, dt
 
+
+#----------------------------------------------------------#
+# Funzione per il calcolo della frequenza di Nyquist       #
+#----------------------------------------------------------#
+
+def Nyquist(sorgente, dt):
+
+    freq_Ny = 1/(2*dt)
+
+    print(sorgente)
+
+    print("frequenza di Nyquist:" , freq_Ny, "1/g")
+
+    return freq_Ny
 
 #####################################################################
 #      Funzione principale: main_Blazar_week                        #
@@ -371,7 +385,12 @@ def main_Blazar_week():
 
            # chiamo la funzione calcola_fft_ps
 
-           fk,PS = calcola_fft_ps(time, E_flux)
+           fk,PS,dt = calcola_fft_ps(time, E_flux)
+
+           # chiamo la funzione Nyquist per il calcolo della frequenza di Nyquist  
+       
+           freq_Ny = Nyquist(sorgente, dt)
+
 
            # Grafico Spettrale PS
         
