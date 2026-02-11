@@ -56,6 +56,9 @@ def parse_arguments():
 
 def processa_sorgente(df):
 
+
+            # df: dataframe relativo a ciascuna sorgente
+
             #creo le liste per differenziare i dati "normali" dagli upper limits
 
             normal_flux = []
@@ -159,6 +162,71 @@ def calcola_upper(flussi_normali, flussi_limiti, sorgente=""):
         return total_points, len(flussi_limiti), percentuale
 
 
+#-------------------------------------------------------------------------------#
+# Funzione che unisce i dati normali e upper limits in array singoli ordinati   #
+#-------------------------------------------------------------------------------#
+
+def unisci_array(dati_separati):
+
+    # dati_separati: dizionario con i 4 array restituiti da processa_sorgente
+    # tempi_normali, flussi_normali, tempi_limiti, flussi_limiti
+        
+    # estraggo i 4 array(già mascherati):
+
+    tn = dati_separati['tempi_normali']
+
+    tl = dati_separati['tempi_limiti']
+
+    fn = dati_separati['flussi_normali']
+
+    fl = dati_separati['flussi_limiti']
+
+    # li concateno a due a due e creo un array che mostra l'indice corretto di ordinamento:
+    
+    tempi_totali = np.concatenate([tn, tl])
+
+    flussi_totali = np.concatenate([fn, fl])
+
+    indice_valori_ordinati = np.argsort(tempi_totali)
+
+    # ottengo infine gli array uniti e ordinati
+
+    tempi_ordinati = tempi_totali[indice_valori_ordinati]
+
+    flussi_ordinati = flussi_totali[indice_valori_ordinati]
+
+    return tempi_ordinati, flussi_ordinati
+
+
+def calcola_fft_ps (time, E_flux):
+
+   # definisco l'intervallo minimo dt temporale del mio campione (7 giorni) usando la mediana dell'array differenze
+
+    dt = np.median(np.diff(time)) 
+
+    #calcolo la FFT per fluttuazioni attorno al valor medio
+
+    E_flux = E_flux - np.mean(E_flux)     
+
+    ck = fft.fft(E_flux) # coefficenti ck
+
+    fk = fft.fftfreq(len(E_flux), d=dt) # frequenze fk
+
+
+    #maschero solo le frequenze positive f>0:
+
+    mask = fk > 0
+
+    fk = fk[mask]
+
+    ck = ck[mask]
+
+    #Power Spectrum
+
+    PS = np.abs(ck)**2
+    
+    return  fk , PS
+
 
 #####################################################################
 #      Funzione principale: main_Blazar_week                        #
@@ -245,7 +313,7 @@ def main_Blazar_week():
 
             if len(tempi_normali) > 0:         
 
-               ax.plot(tempi_normali, flussi_normali , linestyle='', marker = 'o', markersize=6,  color=colori, label=sorgente)
+               ax.plot(tempi_normali, flussi_normali , linestyle='', marker = 'o', markersize=5,  color=colori, label=sorgente)
 
             if len(tempi_limiti) > 0:
 
@@ -277,18 +345,47 @@ def main_Blazar_week():
 
     if args.FFT_PSplot == True:
 
-       print ("produco le FFT") 
 
-       
+       fig, axes = plt.subplots(4, 1, figsize=(8, 9), sharex=True)
+
+       colors = ['#FF8C00', '#1E90FF', '#32CD32', '#8A2BE2']
+
+       for indx, sorgente in enumerate(sorgenti_dict):
+
+           ax = axes[indx]
+           
+           colori = colors[indx]
+
+           # chiamo le funzioni processa_sorgente, unisci_array e salvo i data  negli array definitivi
+
+           df_corrente = sorgenti_dict[sorgente]["df"] 
+           
+           dati_separati = processa_sorgente(df_corrente)
+
+           time, E_flux = unisci_array(dati_separati)
+
+           # chiamo la funzione calcola_fft_ps
+
+           fk,PS = calcola_fft_ps(time, E_flux)
+
+           # Grafico Spettrale PS
+        
+           ax.loglog(fk , PS, linestyle='-', marker='.',  markersize=2, color=colori,  label=sorgente)
+   
+           ax.legend(loc='upper right')    
+               
+           ax.set_ylabel("Power Spectrum (log-scale)")
+
+       axes[-1].set_xlabel('frequency[1/day](log scale)')
+
+       plt.suptitle('Blazar weekly Spectrum', fontsize=12)
+
+       plt.tight_layout()
+
+       plt.show()
+         
+
+
 if __name__ == "__main__":
     main_Blazar_week()
-
-
-
-
-
-
-
-
-
 
