@@ -55,7 +55,7 @@ def parse_arguments():
 #     Funzione che separa i flux_data dagli upper limits     #
 #------------------------------------------------------------#
 
-def processa_sorgente(sorgente, sorgenti_dict):
+def processa_sorgente(df):
 
             #creo le liste per differenziare i dati "normali" dagli upper limits
 
@@ -67,17 +67,9 @@ def processa_sorgente(sorgente, sorgenti_dict):
          
             upper_time = []
 
-	    #memorizzo i dataframe dei flussi e dei tempi
-
-            Energy_flux = sorgenti_dict[sorgente]['df']['Energy Flux [0.1-100 GeV](MeV cm-2 s-1)']
-
-            time = sorgenti_dict[sorgente]['df']['Julian Date']
-
-            
-
             #converto i valori di flusso in stringhe al fine di individuare i dati "-" , NaN e "<"
 
-            for up, valore in  zip(time,Energy_flux):
+            for up, valore in  zip(df['Julian Date'],df['Energy Flux [0.1-100 GeV](MeV cm-2 s-1)']):
 
                 s = str(valore).strip()
 
@@ -238,7 +230,9 @@ def main_Blazar_week():
 
             #chiamo la funzione processa_sorgente
 
-            dati = processa_sorgente(sorgente,sorgenti_dict)
+            mydf = sorgenti_dict[sorgente]["df"]
+
+            dati = processa_sorgente(mydf)
 
             tempi_normali = dati['tempi_normali']
 
