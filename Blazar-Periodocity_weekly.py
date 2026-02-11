@@ -42,8 +42,7 @@ def parse_arguments():
                                      usage      ='Blazar-Periodocity_week.py  --option')
 
     parser.add_argument('--gplot',      action='store_true',   help='grafici relativi alle curve di luce delle quattro sorgenti')
-    parser.add_argument('--FFTplot',    action='store_true',   help='grafici delle FFT delle curve di luce delle quattro sorgenti')
-    parser.add_argument('--PSplot',     action='store_true',   help='grafici degli Spettri di Potenza delle curve di luce delle quattro sorgenti')
+    parser.add_argument('--FFT_PSplot', action='store_true',   help='calcolo delle FFT e grafici degli Spettri di Potenza delle curve di luce delle quattro sorgenti')
     parser.add_argument('--Fitplot',    action='store_true',   help='Fit relativi agli Spettri di Potenza e identificazione del rumore')
     parser.add_argument('--PSfilter',   action='store_true',   help='Filtri relativi ai quattro Spettri di Potenza')
     parser.add_argument('--CLSplot',    action='store_true',   help='Generazione di Curve di Luce Sintetiche e calcolo della probabilità del picco di potenza')
@@ -273,12 +272,12 @@ def main_Blazar_week():
        plt.show()
 
     #-----------------------------------------------------------#
-    #                 Calcolo delle FFT e Grafici               #
+    #                 Calcolo delle FFT e Grafici PS            #
     #-----------------------------------------------------------#
 
-    if args.FFTplot == True  or  args.PSplot == True:
+    if args.FFT_PSplot == True:
 
-       print('produco le FFT') 
+       print ("produco le FFT") 
 
        
 if __name__ == "__main__":
