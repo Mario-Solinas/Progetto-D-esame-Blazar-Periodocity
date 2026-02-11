@@ -43,9 +43,9 @@ def parse_arguments():
 
     parser.add_argument('--gplot',      action='store_true',   help='grafici relativi alle curve di luce delle quattro sorgenti')
     parser.add_argument('--FFT_PSplot', action='store_true',   help='calcolo delle FFT e grafici degli Spettri di Potenza delle curve di luce delle quattro sorgenti')
-    parser.add_argument('--Fitplot',    action='store_true',   help='Fit relativi agli Spettri di Potenza e identificazione del rumore')
-    parser.add_argument('--PSfilter',   action='store_true',   help='Filtri relativi ai quattro Spettri di Potenza')
-    parser.add_argument('--CLSplot',    action='store_true',   help='Generazione di Curve di Luce Sintetiche e calcolo della probabilità del picco di potenza')
+    parser.add_argument('--CLS',        action='store_true',   help='Generazione di Curve di Luce Sintetiche e calcolo della probabità  del picco di potenza')
+    parser.add_argument('--Fit_Blazar', action='store_true',   help='Fit relativi agli Spettri di Potenza e identificazione del rumore')
+    
     
     return  parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
@@ -196,6 +196,11 @@ def unisci_array(dati_separati):
     flussi_ordinati = flussi_totali[indice_valori_ordinati]
 
     return tempi_ordinati, flussi_ordinati
+
+
+#----------------------------------------------------------#
+# Funzione per il calcolo delle FFT e dei Power Spectrums  #
+#----------------------------------------------------------#
 
 
 def calcola_fft_ps (time, E_flux):
@@ -383,6 +388,8 @@ def main_Blazar_week():
        plt.tight_layout()
 
        plt.show()
+
+       
          
 
 
