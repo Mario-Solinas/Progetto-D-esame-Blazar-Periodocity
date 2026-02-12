@@ -151,13 +151,13 @@ def calcola_upper(flussi_normali, flussi_limiti, sorgente=""):
 
            percentuale = (len(flussi_limiti) / total_points * 100) 
 
-        print(sorgente)
+        print("\n", sorgente)
 
-        print(total_points,"punti totali")
+        print("\n", total_points,"punti totali")
 
-        print(len(flussi_limiti) , "upper limits")
+        print("\n", len(flussi_limiti) , "upper limits")
 
-        print("percentuale", percentuale, "%")
+        print("\n", "percentuale", percentuale, "%")
 
         return total_points, len(flussi_limiti), percentuale
 
@@ -241,11 +241,135 @@ def Nyquist(sorgente, dt):
 
     freq_Ny = 1/(2*dt)
 
-    print(sorgente)
+    print("\n", sorgente)
 
-    print("frequenza di Nyquist:" , freq_Ny, "1/g")
+    print("\n", "frequenza di Nyquist:" , freq_Ny, "1/g")
 
     return freq_Ny
+
+
+
+#--------------------------------------------------------------------------------------------#
+# Funzione che genera Curve di Luce Sintetiche e verifica la significatività del picco       #
+#--------------------------------------------------------------------------------------------#
+
+
+def curve_sintetiche(time, E_flux, Nsim_list, sorgente):
+
+    # chiamo la funzione calcola_fft_ps per ottenere lo  Spettro dei dati osservati
+
+    fk_osservati, PS_osservati, dt = calcola_fft_ps(time, E_flux)
+
+    # picco massimo dello spettro dei dati osservati
+
+    P0 = np.max(PS_osservati)
+
+    print("\n", sorgente)
+
+    print("Picco massimo reale P0 =", P0)
+
+    # creo lista vuota per le percentuali dei massimi randomici
+
+    p_values = []
+
+    # ciclo for per la lista degli N diversi numeri di simulazioni 
+
+    for Nsim in Nsim_list:
+
+        # creo lista vuota per i massimi randomici
+
+        Pmax_rand = []
+
+        # ciclo for per gli N massimi randomici
+
+        for _ in range(Nsim):
+
+            # copia del flusso
+
+            flux_rand = E_flux.copy()
+
+            # mescolamento casuale dell'array E_flux (rompe le  correlazioni temporali)
+
+            np.random.shuffle(flux_rand)
+
+            # calcolo lo spettro della curva randomizzata 
+
+            _, PS_rand, _ = calcola_fft_ps(time, flux_rand)
+
+            # aggiungo il massimo randomico alla lista Pmax_rand
+
+            Pmax_rand.append(np.max(PS_rand))
+        
+        # converto la lista piena dei max randomici in array 
+
+        Pmax_rand = np.array(Pmax_rand)
+
+        # calcolo la percentuale delle curve randomiche che hanno picco >=P0
+
+        p = (np.sum(Pmax_rand >= P0) / Nsim)*100
+
+        # aggiungo la percentuale trovata alla lista
+
+        
+        p_values.append(p)
+
+        print("\n", "N","=",  Nsim, ",", "percentuale" , "=", p )
+
+        print("Max random medio:", np.mean(Pmax_rand))
+
+        print("Max random massimo:", np.max(Pmax_rand))
+        
+
+    return p_values    
+
+
+#-----------------------------------------------------------------#
+#           Funzione per il fit di riconoscimento del Rumore      #
+#-----------------------------------------------------------------#
+
+
+def fit_power_law(fk, PS, sorgente):
+    
+    #Fit dello spettro di potenza con legge di potenza:  f^{-beta}#
+
+    logf = np.log10(fk)
+
+    logP = np.log10(PS)
+    
+    # definisco il modello lineare del fit
+
+    def linear_model(x, a, b):
+
+        return a * x + b
+
+    # array dei parametri del fit
+    
+    popt, pcov = curve_fit(linear_model, logf, logP)
+
+    a= popt[0]
+
+    b= popt[1]
+
+    a_err = np.sqrt(pcov[0, 0])
+
+    b_err = np.sqrt(pcov[1, 1])  
+
+    beta = -a     
+
+    beta_err = a_err 
+
+    print("\n", sorgente)
+
+    print("Indice di rumore beta" , "=" , beta,  "±",  beta_err)
+
+    # curva di fit
+
+    logP_fit = linear_model(logf, a, b)
+
+    return logP_fit, beta, beta_err
+        
+
+
 
 #####################################################################
 #      Funzione principale: main_Blazar_week                        #
@@ -362,8 +486,7 @@ def main_Blazar_week():
     #                 Calcolo delle FFT e Grafici PS            #
     #-----------------------------------------------------------#
 
-    if args.FFT_PSplot == True:
-
+    if args.FFT_PSplot == True or  args.Fit_Blazar == True:
 
        fig, axes = plt.subplots(4, 1, figsize=(8, 9), sharex=True)
 
@@ -392,25 +515,100 @@ def main_Blazar_week():
            freq_Ny = Nyquist(sorgente, dt)
 
 
-           # Grafico Spettrale PS
+           # Grafico Spettrale
         
            ax.loglog(fk , PS, linestyle='-', marker='.',  markersize=2, color=colori,  label=sorgente)
+
+
+           #-----------------------------------------------------------#
+           #                 Calcolo e grafico del fit                 #
+           #-----------------------------------------------------------#
+
+
+           if args.Fit_Blazar == True:
+
+              # Fit relativo all'identificazione del rumore:
+
+              logP_fit, beta, beta_err =  fit_power_law(fk, PS, sorgente)
+ 
+              # Fit Grafico di confronto
+           
+              ax.loglog(fk, 10**logP_fit, '-', color= colori, label=f'β = {beta:.2f} ± {beta_err:.2f}')
+
+         
+           ax.legend(loc='upper right')
+
+           ax.set_ylabel("Power Spectrum (log-scale)")
+
+
+       axes[-1].set_xlabel('Frequency [1/day] (log scale)')
+
+       if args.Fit_Blazar == True:
+
+        plt.suptitle('Blazar Weekly Spectrum - con Fit Power Law', fontsize=12)
+
+       else:
+
+        plt.suptitle('Blazar Weekly Spectrum', fontsize=12)
+    
+       plt.tight_layout()
+
+       plt.show()
+                        
+
+       
+          
+
+    #------------------------------------------------------------------------------#
+    #      Generazione di Curve di Luce Sintetiche e calcolo della probabilità     #
+    #------------------------------------------------------------------------------#
+   
+    if args.CLS == True:
+
+       fig, axes = plt.subplots(4, 1, figsize=(8, 9), sharex=True)
+
+       colors = ['#FF8C00', '#1E90FF', '#32CD32', '#8A2BE2']
+
+       for indx, sorgente in enumerate(sorgenti_dict):
+
+           ax = axes[indx]
+           
+           colori = colors[indx]
+
+           # creo la lista con 7 valori arbitrari scelto del numero N di Curve di Luce Sintetiche 
+
+           Nsim_list = [50, 100, 300, 500, 1000,2000,10000]
+
+           # chiamo le funzioni processa_sorgente, unisci_array e salvo i data  negli array definitivi
+
+           df_corrente = sorgenti_dict[sorgente]["df"] 
+           
+           dati_separati = processa_sorgente(df_corrente)
+
+           time, E_flux = unisci_array(dati_separati)
+
+           #chiamo la funzione curve_sintetiche per l'analisi della significatività del picco di potenza
+
+           p_values = curve_sintetiche(time, E_flux, Nsim_list, sorgente)
+
+          #Grafico che mette a confronto la sensibilità del numero N di simulazioni con la relativa percentuale 
+
+           ax.plot(Nsim_list , p_values , linestyle='', marker ='o', markersize=6, color=colori,  label=sorgente)
    
            ax.legend(loc='upper right')    
                
-           ax.set_ylabel("Power Spectrum (log-scale)")
+           ax.set_ylabel("percentuale (%)")
 
-       axes[-1].set_xlabel('frequency[1/day](log scale)')
+       axes[-1].set_xlabel('Numero Curve Sintetiche')
 
-       plt.suptitle('Blazar weekly Spectrum', fontsize=12)
+       plt.suptitle('Test di significatività del Picco di Potenza', fontsize=12)
 
        plt.tight_layout()
 
        plt.show()
 
-       
+            
          
-
 
 if __name__ == "__main__":
     main_Blazar_week()
