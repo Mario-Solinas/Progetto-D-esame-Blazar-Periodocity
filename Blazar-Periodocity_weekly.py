@@ -577,7 +577,7 @@ def main_Blazar_week():
 
            # creo la lista con 7 valori arbitrari scelto del numero N di Curve di Luce Sintetiche 
 
-           Nsim_list = [50, 100, 300, 500, 1000,2000,10000]
+           Nsim_list = [10000,20000,30000,50000,100000]
 
            # chiamo le funzioni processa_sorgente, unisci_array e salvo i data  negli array definitivi
 
@@ -591,21 +591,7 @@ def main_Blazar_week():
 
            p_values = curve_sintetiche(time, E_flux, Nsim_list, sorgente)
 
-          #Grafico che mette a confronto la sensibilità del numero N di simulazioni con la relativa percentuale 
-
-           ax.plot(Nsim_list , p_values , linestyle='', marker ='o', markersize=6, color=colori,  label=sorgente)
-   
-           ax.legend(loc='upper right')    
-               
-           ax.set_ylabel("percentuale (%)")
-
-       axes[-1].set_xlabel('Numero Curve Sintetiche')
-
-       plt.suptitle('Test di significatività del Picco di Potenza', fontsize=12)
-
-       plt.tight_layout()
-
-       plt.show()
+          
 
             
          
