@@ -446,7 +446,7 @@ def main_Blazar_monthly ():
              
             ax.legend(loc='upper right')    
                
-            ax.set_ylabel("Energy Flux (MeV cm-2 s-1) (log-scale)")
+            ax.set_ylabel("Energy Flux  (log-scale)")
 
             ax.set_yscale('log')
 
@@ -553,7 +553,7 @@ def main_Blazar_monthly ():
 
            # creo la lista con 7 valori arbitrari scelto del numero N di Curve di Luce Sintetiche 
 
-           Nsim_list = [50, 100, 300, 500, 1000,2000,10000]
+           Nsim_list = [10000,20000,30000,50000,100000]
 
            # chiamo le funzioni processa_sorgente, unisci_array e salvo i data  negli array definitivi
 
@@ -574,6 +574,8 @@ def main_Blazar_monthly ():
            ax.legend(loc='upper right')    
                
            ax.set_ylabel("percentuale (%)")
+
+           ax.grid()
 
        axes[-1].set_xlabel('Numero Curve Sintetiche')
 
