@@ -567,23 +567,7 @@ def main_Blazar_monthly ():
 
            p_values = curve_sintetiche(time, E_flux, Nsim_list, sorgente)
 
-          #Grafico che mette a confronto la sensibilità del numero N di simulazioni con la relativa percentuale 
-
-           ax.plot(Nsim_list , p_values , linestyle='', marker ='o', markersize=6, color=colori,  label=sorgente)
-   
-           ax.legend(loc='upper right')    
-               
-           ax.set_ylabel("percentuale (%)")
-
-           ax.grid()
-
-       axes[-1].set_xlabel('Numero Curve Sintetiche')
-
-       plt.suptitle('Test di significatività del Picco di Potenza', fontsize=12)
-
-       plt.tight_layout()
-
-       plt.show()
+          
 
            
 if __name__ == "__main__":
