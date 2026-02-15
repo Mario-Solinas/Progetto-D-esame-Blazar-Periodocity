@@ -10,7 +10,7 @@ Il seguente progetto è suddiviso rispettivamente in 4 file e cartelle:
 
 -Blazar-Periodocity_monthly.py: contiene lo script python  con con la realizzazione delle richieste previste  per i datasheet mensili di ciascuna sorgente.
 
-La struttura dei file Blazar-Periodocity_weekly.py e Blazar-Periodocity_monthly.py è del tutto simmetrica: le funzioni e le funzionalità implementate sono le medesime. Anzitutto è riportato l'importo dei moduli python necessari, alla quale si aggiungono brevi didascalie introduttive per le funzioni utilizzate. La funzione speciale "arse_arguments" permette all'utente di selezionare le opzionalità contenenti quattro diverse analisi dati:
+La struttura dei file Blazar-Periodocity_weekly.py e Blazar-Periodocity_monthly.py è del tutto simmetrica: le funzioni e le funzionalità implementate sono le medesime. Anzitutto è riportato l'importo dei moduli python necessari, alla quale si aggiungono brevi didascalie introduttive per le funzioni utilizzate. La funzione speciale "parse_arguments" permette all'utente di selezionare le opzionalità contenenti quattro diverse analisi dati:
 
 1)'--gplot' : per l'analisi grafica delle Curve di Luce
 
